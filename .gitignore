@@ -1,0 +1,10 @@
+.idea
+.cache
+.local
+data
+media
+venv
+__pycache__
+
+.bash_history
+.DS_Store
