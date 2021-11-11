@@ -33,8 +33,11 @@ shell: ## Run bash in the container
 render: ## Run the render script in the container
 	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qm render.py Render
 
-render-hq:
+render-ql:
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -ql render.py Render
+
+render-qh:
 	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qh render.py Render
 
 clean: ## Remove any generated artifacts
-	rm -rf media
+	rm -rf media/*/partial_movie_files/*
