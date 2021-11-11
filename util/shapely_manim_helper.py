@@ -1,6 +1,27 @@
-from manim import VGroup, Polygon, Cutout
+from manim import VGroup, Polygon, Cutout, Line
+from shapely.geometry.multilinestring import MultiLineString as ShapelyMultiLineString
 from shapely.geometry.multipolygon import MultiPolygon as ShapelyMultiPolygon
+from shapely.geometry.linestring import LineString as ShapelyLineString
 from shapely.geometry.polygon import Polygon as ShapelyPolygon
+
+
+def shapely_multi_line_string_to_manim(
+    multi_line_string: ShapelyMultiLineString,
+    stroke_color: str,
+    transformer
+) -> VGroup:
+    manim_lines = []
+    geom: ShapelyLineString
+    for geom in multi_line_string.geoms:
+        manim_coords = []
+        for shapely_coord in geom.coords:
+            manim_coords.append(transformer(shapely_coord))
+        manim_object = Line(*manim_coords)
+        manim_object.set_stroke(color=stroke_color, opacity=1, width=30)
+        manim_lines.append(manim_object)
+
+    return VGroup(*manim_lines)
+
 
 def shapely_multi_polygon_to_manim(
         multi_polygon: ShapelyMultiPolygon,

@@ -1,14 +1,17 @@
 from typing import Tuple
 
-from manim import VGroup, Scene, config, FadeIn, AnimationGroup, Transform, ReplacementTransform, \
-    Rectangle, Create, UP, Text, DOWN, FadeOut, Write, LEFT, RIGHT
+from manim import VGroup, Scene, config, FadeIn, AnimationGroup, Transform, \
+    ReplacementTransform, Rectangle, Create, UP, Text, DOWN, FadeOut, Write, \
+    LEFT, RIGHT
 
 # The scene will contain a rectangle that is 128 by 80 units. We add a margin
 # of 20 units to allow us to display text if necessary.
-from util.lego_projection_transformer_builder import LegoProjectionTransformerBuilder
+from util.lego_projection_transformer_builder import \
+    LegoProjectionTransformerBuilder
 from util.number_plane_helper import generate_transformable_number_plane
 from util.shapely_helper import load_world_map
-from util.shapely_manim_helper import shapely_multi_polygon_to_manim
+from util.shapely_manim_helper import shapely_multi_polygon_to_manim, \
+    shapely_multi_line_string_to_manim
 
 content_width = 128
 content_height = 80
@@ -126,7 +129,8 @@ class Render(Scene):
         self.wait()
         self.play(FadeOut(step_2_text))
 
-        # Scene: Text that explains we are shifting each latitude individually
+        # Scene: Text that explains we are shifting each latitude individually,
+        # and display individual stretch latitudes (In red)
         step_3_text = Text(
             'Step 3: Distort the latitudes individually.',
             font="sans-serif"
@@ -134,10 +138,25 @@ class Render(Scene):
             .scale(8) \
             .next_to(content_rect, DOWN)
         step_3_text.shift(frame_padding / 2 * DOWN)
-        self.play(Write(step_3_text))
 
-        # Scene: Display individual stretch latitudes (In red)
-        # Todo:
+        latitude_lines = shapely_multi_line_string_to_manim(
+            builder.get_latitude_bands_as_multi_line_string(),
+            '#FF0000',
+            transform_wgs84_to_fit_content
+        )
+        canvas_lines = shapely_multi_line_string_to_manim(
+            builder.get_canvas_bands_as_multi_line_string(),
+            '#FF0000',
+            lambda x: (x[0], content_height / 2 - x[1], 0)
+        )
+        latitude_lines.shift(content_offset)
+        canvas_lines.shift(content_offset)
+
+        self.play(AnimationGroup(
+            Write(step_3_text),
+            Create(latitude_lines)
+        ))
+        self.wait()
 
         # Scene: Stretch individual latitudes
         land_group_lego = shapely_multi_polygon_to_manim(
@@ -154,11 +173,14 @@ class Render(Scene):
         axis_group_lego.shift(content_offset)
 
         self.play(ReplacementTransform(
-            VGroup(land_group, axis_group),
-            VGroup(land_group_lego, axis_group_lego)
+            VGroup(land_group, axis_group, latitude_lines),
+            VGroup(land_group_lego, axis_group_lego, canvas_lines)
         ))
         self.wait()
-        self.play(AnimationGroup(FadeOut(step_3_text)))
+        self.play(AnimationGroup(
+            FadeOut(step_3_text),
+            FadeOut(canvas_lines)
+        ))
 
         # Scene: Text that explains why the map is being shifted by 4 units
         step_4_text = Text(

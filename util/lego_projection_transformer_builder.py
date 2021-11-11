@@ -2,7 +2,7 @@ from math import isclose
 
 from typing import Tuple, Callable, TypedDict, List
 
-from shapely.geometry import LineString
+from shapely.geometry import LineString, MultiLineString
 
 
 class StretchRange(TypedDict):
@@ -55,8 +55,31 @@ class LegoProjectionTransformerBuilder:
             }
         ]
 
-    def get_stretch_bands(self) -> LineString:
-        pass
+    def get_latitude_bands_as_multi_line_string(self) -> MultiLineString:
+        line_strings = []
+
+        # Skip the first element
+        for stretch_band in self.stretch_bands[1:]:
+            start_x = -180
+            end_x = 180
+            y = stretch_band['latitude_range_start']
+            line_strings.append(LineString([(start_x, y), (end_x, y)]))
+
+        line_strings.reverse()
+        return MultiLineString(line_strings)
+
+    def get_canvas_bands_as_multi_line_string(self) -> MultiLineString:
+        line_strings = []
+
+        # Skip the first element
+        for stretch_band in self.stretch_bands[1:]:
+            start_x = -self.canvas_width / 2
+            end_x = self.canvas_width / 2
+            y = stretch_band['canvas_range_start']
+            line_strings.append(LineString([(start_x, y), (end_x, y)]))
+
+        line_strings.reverse()
+        return MultiLineString(line_strings)
 
     def build_wgs84_to_lego(
             self
