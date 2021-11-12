@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import shapefile
+from shapely.geometry import box
 from shapely.geometry import shape, Polygon, MultiPolygon
 from shapely.ops import unary_union
 
@@ -32,3 +33,15 @@ def load_world_map() -> MultiPolygon:
         land_shapes = land_shapes.difference(lake_shape)
 
     return land_shapes
+
+
+def split_world_map_at_longitude(
+        world_map: MultiPolygon,
+        longitude: float
+) -> Tuple[MultiPolygon, MultiPolygon]:
+    bbox_left = box(-180, -90, longitude, 90)
+    bbox_right = box(longitude, -90, 180, 90)
+    world_map_left = world_map.intersection(bbox_left)
+    world_map_right = world_map.intersection(bbox_right)
+    return world_map_left, world_map_right
+

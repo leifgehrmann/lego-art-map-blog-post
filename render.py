@@ -9,7 +9,7 @@ from manim import VGroup, Scene, config, FadeIn, AnimationGroup, Transform, \
 from util.lego_projection_transformer_builder import \
     LegoProjectionTransformerBuilder
 from util.number_plane_helper import generate_transformable_number_plane
-from util.shapely_helper import load_world_map
+from util.shapely_helper import load_world_map, split_world_map_at_longitude
 from util.shapely_manim_helper import shapely_multi_polygon_to_manim, \
     shapely_multi_line_string_to_manim
 
@@ -223,20 +223,36 @@ class Render(Scene):
 
         # Scene: Un-hide the left and right maps, with the correctly cropped
         # center map, using a fade in animation.
-        # Todo: Get center and right polygons, perform a difference against the
-        # two rectangles, and get a unionized MultiPolygon.
+        land_shapes_left, land_shapes_right = split_world_map_at_longitude(
+            land_shapes,
+            -180 + 4 * 360 / content_width
+        )
+        land_group_left = shapely_multi_polygon_to_manim(
+            land_shapes_left,
+            '#FFFFFF',
+            transform_wgs84_to_lego
+        )
+        land_group_right = shapely_multi_polygon_to_manim(
+            land_shapes_right,
+            '#FFFFFF',
+            transform_wgs84_to_lego
+        )
+        land_group_left.shift(content_offset)
+        land_group_right.shift(content_offset)
+        land_group_left.shift((content_width - 4) * RIGHT)
+        land_group_right.shift(4 * LEFT)
+        self.play(AnimationGroup(
+            FadeIn(land_group_left),
+            FadeIn(land_group_right),
+        ))
+        self.play(AnimationGroup(
+            FadeOut(land_group_lego),
+            FadeOut(land_group_lego_left),
+            FadeOut(land_group_lego_right),
+            FadeOut(axis_group_lego),
+            FadeOut(axis_group_lego_left),
+            FadeOut(axis_group_lego_right),
+            FadeOut(step_4_text)
+        ))
         self.wait()
-        self.play(FadeOut(step_4_text))
-
-        # Scene: Text that explains what we are comparing it to.
-        step_5_text = Text(
-            'For comparison, here is LEGO\' World Map',
-            font="sans-serif"
-        ) \
-            .scale(8) \
-            .next_to(content_rect, DOWN)
-        step_5_text.shift(frame_padding / 2 * DOWN)
-        self.play(Write(step_5_text))
-
-        # Scene: Fade in the actual LEGO world map in bitmap form.
-        # Todo:
+        self.wait()
