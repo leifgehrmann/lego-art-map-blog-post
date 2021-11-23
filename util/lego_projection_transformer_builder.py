@@ -39,18 +39,18 @@ class LegoProjectionTransformerBuilder:
                 'latitude_range_start': -60.0,
                 'latitude_range_stop': -57.0,
                 'canvas_range_start': 70,
-                'canvas_range_stop': 67,
+                'canvas_range_stop': 66.5,
             },
             {
                 'latitude_range_start': -57.0,
                 'latitude_range_stop': 86.0,
-                'canvas_range_start': 67,
-                'canvas_range_stop': 4,
+                'canvas_range_start': 66.5,
+                'canvas_range_stop': 3.5,
             },
             {
                 'latitude_range_start': 86.0,
                 'latitude_range_stop': 90.000001,
-                'canvas_range_start': 4,
+                'canvas_range_start': 3.5,
                 'canvas_range_stop': 0,
             }
         ]
