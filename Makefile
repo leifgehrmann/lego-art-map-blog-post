@@ -30,11 +30,13 @@ export_requirements: ## Exports the poetry requirements that can be used by pip
 shell: ## Run bash in the container
 	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim /bin/bash
 
-render: ## Run the render script in the container
-	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qm render.py Render
+render: render-ql render-qm render-qh ## Run the render script in the container
 
 render-ql:
 	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -ql render.py Render
+
+render-qm:
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qm render.py Render
 
 render-qh:
 	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qh render.py Render
