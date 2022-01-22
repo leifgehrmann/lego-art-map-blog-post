@@ -1,11 +1,13 @@
 from typing import Tuple
 
 from manim import VGroup, Scene, config, FadeIn, AnimationGroup, Transform, \
-    ReplacementTransform, Rectangle, Create, UP, Text, DOWN, FadeOut, Write, \
+    ReplacementTransform, Rectangle, Create, UP, Text, DOWN, FadeOut, \
     LEFT, RIGHT
 
 # The scene will contain a rectangle that is 128 by 80 units. We add a margin
 # of 20 units to allow us to display text if necessary.
+from shapely.geometry import MultiLineString, LineString
+
 from util.lego_projection_transformer_builder import \
     LegoProjectionTransformerBuilder
 from util.number_plane_helper import generate_transformable_number_plane
@@ -41,8 +43,29 @@ def transform_wgs84_to_fit_content(
     return coord[0] * scale_x, coord[1] * scale_y, 0
 
 
+class RenderFirstFrame(Scene):
+    def construct(self):
+        self.camera.background_color = '#212121'
+
+        # Scene: Display world map.
+        land_group = shapely_multi_polygon_to_manim(
+            load_world_map(),
+            '#FFFFFF',
+            transform_wgs84_to_void
+        )
+        axis_group = generate_transformable_number_plane(
+            -180, 180, 5,
+            -90, 90, 5,
+            transform_wgs84_to_void
+        )
+        # land_group.shift(content_offset)
+        # axis_group.shift(content_offset)
+        self.add(VGroup(land_group, axis_group))
+
 class Render(Scene):
     def construct(self):
+        self.camera.background_color = '#212121'
+
         # Prepare some objects that we will use throughout the animation.
         land_shapes = load_world_map()
         builder = LegoProjectionTransformerBuilder(
@@ -68,17 +91,6 @@ class Render(Scene):
         wgs84_rect.shift(content_offset)
         content_rect.shift(content_offset)
 
-        # Scene: Display WGS84 world map container
-        step_1_text = Text(
-            'Step 1: World map in standard WGS84 projection.',
-            font="sans-serif"
-        )\
-            .scale(8)\
-            .next_to(content_rect, DOWN)
-        step_1_text.shift(frame_padding / 2 * DOWN)
-        self.play(Write(step_1_text))
-        self.play(Create(wgs84_rect))
-
         # Scene: Display world map.
         land_group = shapely_multi_polygon_to_manim(
             land_shapes,
@@ -92,7 +104,18 @@ class Render(Scene):
         )
         land_group.shift(content_offset)
         axis_group.shift(content_offset)
-        self.play(FadeIn(VGroup(land_group, axis_group)))
+        self.add(VGroup(land_group, axis_group))
+
+        # Scene: Display WGS84 world map container
+        step_1_text = Text(
+            'Step 1: World map in standard WGS84 projection.',
+            font="sans-serif"
+        )\
+            .scale(8)\
+            .next_to(content_rect, DOWN)
+        step_1_text.shift(frame_padding / 2 * DOWN)
+        self.play(FadeIn(step_1_text))
+        self.play(Create(wgs84_rect))
         self.wait()
         self.play(AnimationGroup(FadeOut(wgs84_rect), FadeOut(step_1_text)))
 
@@ -104,7 +127,7 @@ class Render(Scene):
             .scale(8) \
             .next_to(content_rect, DOWN)
         step_2_text.shift(frame_padding / 2 * DOWN)
-        self.play(AnimationGroup(Write(step_2_text)))
+        self.play(AnimationGroup(FadeIn(step_2_text)))
 
         # Scene: Draw the expected canvas size
         self.play(Create(content_rect))
@@ -153,7 +176,7 @@ class Render(Scene):
         canvas_lines.shift(content_offset)
 
         self.play(AnimationGroup(
-            Write(step_3_text),
+            FadeIn(step_3_text),
             Create(latitude_lines)
         ))
         self.wait()
@@ -183,6 +206,15 @@ class Render(Scene):
         ))
 
         # Scene: Text that explains why the map is being shifted by 4 units
+        longitude_lines = shapely_multi_line_string_to_manim(
+            MultiLineString([LineString(
+                [(0, 90), (0, -90)]
+            )]),
+            '#FF0000',
+            transform_wgs84_to_fit_content
+        )
+        longitude_lines.shift(content_offset)
+        longitude_lines.z_index = 1
         step_4_text = Text(
             'Step 4: Shift the world map to the left.',
             font="sans-serif"
@@ -190,7 +222,10 @@ class Render(Scene):
             .scale(8) \
             .next_to(content_rect, DOWN)
         step_4_text.shift(frame_padding / 2 * DOWN)
-        self.play(Write(step_4_text))
+        self.play(AnimationGroup(
+            FadeIn(step_4_text),
+            Create(longitude_lines)
+        ))
 
         # Scene: Display repeating x-axis. In other words, one on the left,
         # another to the right of the center map.
@@ -243,7 +278,7 @@ class Render(Scene):
         land_group_right.shift(4 * LEFT)
         self.play(AnimationGroup(
             FadeIn(land_group_left),
-            FadeIn(land_group_right),
+            FadeIn(land_group_right)
         ))
         self.play(AnimationGroup(
             FadeOut(land_group_lego),
@@ -252,7 +287,8 @@ class Render(Scene):
             FadeOut(axis_group_lego),
             FadeOut(axis_group_lego_left),
             FadeOut(axis_group_lego_right),
-            FadeOut(step_4_text)
+            FadeOut(step_4_text),
+            FadeOut(longitude_lines)
         ))
         self.wait()
         self.wait()

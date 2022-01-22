@@ -32,14 +32,17 @@ shell: ## Run bash in the container
 
 render: render-ql render-qm render-qh ## Run the render script in the container
 
-render-ql:
-	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -ql render.py Render
+render-first-frame: ## Render the first frame of the animation
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -sqh projection_animation.py RenderFirstFrame
 
-render-qm:
-	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qm render.py Render
+render-ql: ## Run the render script in low-quality
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -ql projection_animation.py Render
 
-render-qh:
-	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qh render.py Render
+render-qm: ## Run the render script in medium-quality
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qm projection_animation.py Render
+
+render-qh: ## Run the render script in high-quality
+	docker run --rm -it --name lego-art-map-blog-post -v `pwd`:/manim manimcommunity/manim manim -qh projection_animation.py Render
 
 clean: ## Remove any generated artifacts
 	rm -rf media/*/partial_movie_files/*
