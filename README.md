@@ -1,6 +1,5 @@
 # lego-art-map-blog-post
 
-A Manim script that illustrates how I replicated the LEGO Art World Map.
 A Manim script that creates an animation which illustrates how I replicated the
 [LEGO Art World Map's](https://www.lego.com/en-gb/product/world-map-31203)
 projection, starting from WGS-84.
